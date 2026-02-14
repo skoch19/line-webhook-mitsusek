@@ -8,14 +8,21 @@ const client = new Client({
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN,
 });
 
-// postbackのtextで「無視するワード」
-const IGNORE_TEXTS = [
+// messageで無視するワード
+const IGNORE_MESSAGES = [
   "#家族風呂の予約をする",
   "#アクティビティを見る",
   "#ドリンクメニュー",
 ];
 
-// 返信文テンプレ（今は薪割りだけ）
+// postbackで無視するワード
+const IGNORE_POSTBACK_TEXTS = [
+  "#家族風呂の予約をする",
+  "#アクティビティを見る",
+  "#ドリンクメニュー",
+];
+
+// 返信文テンプレ（薪割り用）
 const DETAIL_TEXT = {
   makiwari: `時間
 15:00〜22:00まで
@@ -37,7 +44,30 @@ app.post("/webhook", async (req, res) => {
     for (const event of events) {
       console.log("event:", JSON.stringify(event, null, 2));
 
-      // postback以外は無視
+      // =========================
+      // ✅ message処理（今回の目的）
+      // =========================
+      if (event.type === "message") {
+        const text = event.message?.text || "";
+
+        if (IGNORE_MESSAGES.includes(text)) {
+          console.log("IGNORED message:", text);
+          continue; // 返信しない＝通知鳴らない
+        }
+
+        // それ以外の通常メッセージは通知させる
+        await client.replyMessage(event.replyToken, {
+          type: "text",
+          text: "メッセージを受信しました",
+        });
+
+        console.log("replied normal message");
+        continue;
+      }
+
+      // =========================
+      // postback処理
+      // =========================
       if (event.type !== "postback") continue;
 
       const data = event.postback?.data || "";
@@ -46,16 +76,13 @@ app.post("/webhook", async (req, res) => {
       console.log("postback.data:", data);
       console.log("postback.params:", Object.fromEntries(params.entries()));
 
-      // あなたのrichmenuは action=keyword & text=... なのでここを見る
       const text = params.get("text");
 
-      // 指定3つなら「何もしない（ログだけ）」
-      if (text && IGNORE_TEXTS.includes(text)) {
+      if (text && IGNORE_POSTBACK_TEXTS.includes(text)) {
         console.log("IGNORED postback:", text);
         continue;
       }
 
-      // action=show_detail&id=makiwari 形式（薪割り用）
       if (params.get("action") === "show_detail") {
         const id = params.get("id");
         const detailText = DETAIL_TEXT[id];
@@ -74,7 +101,6 @@ app.post("/webhook", async (req, res) => {
         continue;
       }
 
-      // その他のpostbackは通知（返信メッセージ）
       await client.replyMessage(event.replyToken, {
         type: "text",
         text: "通知しました",
