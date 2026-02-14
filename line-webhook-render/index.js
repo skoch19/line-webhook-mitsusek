@@ -1,3 +1,5 @@
+console.log("event:", JSON.stringify(event));
+
 import express from "express";
 import { Client } from "@line/bot-sdk";
 
