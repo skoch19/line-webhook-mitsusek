@@ -56,10 +56,6 @@ app.post("/webhook", async (req, res) => {
         }
 
         // それ以外の通常メッセージは通知させる
-        await client.replyMessage(event.replyToken, {
-          type: "text",
-          text: "メッセージを受信しました",
-        });
 
         console.log("replied normal message");
         continue;
@@ -100,11 +96,6 @@ app.post("/webhook", async (req, res) => {
         console.log("replied detail:", id);
         continue;
       }
-
-      await client.replyMessage(event.replyToken, {
-        type: "text",
-        text: "通知しました",
-      });
 
       console.log("replied default notification");
     }
