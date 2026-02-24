@@ -15,11 +15,9 @@ app.post("/webhook", async (req, res) => {
     const events = req.body?.events || [];
 
     for (const event of events) {
-
       if (event.type === "message") continue;
 
       if (event.type === "postback") {
-
         const data = event.postback.data;
 
         // 🛁 家族風呂
@@ -41,65 +39,73 @@ app.post("/webhook", async (req, res) => {
           continue;
         }
 
-        // 🍹 ドリンク
+        // 🍹 ドリンク（文章＋画像）
         if (data === "action=drink") {
-          await client.replyMessage(event.replyToken, {
-            type: "text",
-            text:
+          const drinkImage =
+            "https://res.cloudinary.com/dtbvrmjru/image/upload/w_800,h_800,c_fill,g_auto/v1771899362/%E3%83%88%E3%82%99%E3%83%AA%E3%83%B3%E3%82%AF%E3%83%A1%E3%83%8B%E3%83%A5%E3%83%BC_y4emlf.png";
+
+          await client.replyMessage(event.replyToken, [
+            {
+              type: "text",
+              text:
 `各種ドリンクのご注文は公式LINEから、
 お支払いは受付にて承っております。`
-          });
+            },
+            {
+              type: "image",
+              originalContentUrl: drinkImage,
+              previewImageUrl: drinkImage
+            }
+          ]);
           continue;
         }
 
-        // 🎪 アクティビティ
+        // 🎪 アクティビティ（正方形＋バッジ＋半透明＋ボタン）
         if (data === "action=activity") {
 
           const makeBubble = ({ title, price, img, url }) => ({
             type: "bubble",
             hero: {
               type: "image",
-              url: img.replace("/upload/", "/upload/w_800,h_533,c_fill,g_auto/"),
+              url: img.replace("/upload/", "/upload/w_800,h_800,c_fill,g_auto/"),
               size: "full",
-              aspectRatio: "20:13",
-              aspectMode: "cover",
-              action: { type: "uri", uri: url }
+              aspectRatio: "1:1",
+              aspectMode: "cover"
             },
             body: {
               type: "box",
               layout: "vertical",
               contents: [
-                {
+                price ? {
                   type: "box",
                   layout: "vertical",
                   position: "absolute",
                   offsetTop: "12px",
                   offsetStart: "12px",
-                  backgroundColor: price ? "#00000099" : "#00000000",
+                  backgroundColor: "#00000099",
                   cornerRadius: "20px",
                   paddingAll: "6px",
-                  contents: price
-                    ? [{
-                        type: "text",
-                        text: price,
-                        size: "xs",
-                        color: "#FFFFFF",
-                        weight: "bold"
-                      }]
-                    : []
-                },
+                  contents: [{
+                    type: "text",
+                    text: price,
+                    size: "xs",
+                    color: "#FFFFFF",
+                    weight: "bold"
+                  }]
+                } : { type: "box", layout: "vertical", contents: [] },
+
                 {
                   type: "box",
                   layout: "vertical",
                   position: "absolute",
-                  offsetBottom: "0px",
+                  offsetBottom: "60px",
                   width: "100%",
                   backgroundColor: "#00000080",
-                  paddingAll: "14px",
+                  paddingAll: "10px",
                   contents: [{
                     type: "text",
                     text: title,
-                    size: "lg",
+                    size: "md",
                     weight: "bold",
                     color: "#FFFFFF",
                     align: "center"
@@ -108,6 +114,22 @@ app.post("/webhook", async (req, res) => {
               ],
               paddingAll: "0px",
               height: "0px"
+            },
+            footer: {
+              type: "box",
+              layout: "vertical",
+              contents: [
+                {
+                  type: "button",
+                  style: "primary",
+                  color: "#3A7D44",
+                  action: {
+                    type: "uri",
+                    label: "詳細を見る",
+                    uri: url
+                  }
+                }
+              ]
             }
           });
 
@@ -184,7 +206,6 @@ app.post("/webhook", async (req, res) => {
     }
 
     res.sendStatus(200);
-
   } catch (err) {
     console.error(err);
     res.sendStatus(200);
