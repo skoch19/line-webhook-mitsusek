@@ -16,8 +16,48 @@ app.post("/webhook", async (req, res) => {
 
     for (const event of events) {
 
-      if (event.type === "message") continue;
+      // =========================
+      // 🔹 チェックイン（通常メッセージ）
+      // =========================
+      if (event.type === "message" && event.message.type === "text") {
 
+        const text = event.message.text;
+
+        if (text.includes("チェックイン")) {
+
+          const profile = await client.getProfile(event.source.userId);
+
+          await client.replyMessage(event.replyToken, {
+            type: "text",
+            text:
+`${profile.displayName}さま
+
+本日はザランタン三瀬高原にご宿泊いただきありがとうございます😊
+ご滞在中、なにかございましたらこちらのLINEにてメッセージをお送りください。
+
+ーーーーーーーーーーー
+【チェックインのご案内】
+チェックインフォームをまだご記入いただいていないお客様は、下記リンクよりご入力をお願いいたします。
+https://dive-hotels.com/accounts/mypage
+
+※複数テントをご予約のお客様は、テントごとにご記入をお願いいたします。
+ーーーーーーーーーーー
+
+【21:30以降のご連絡先】
+21:30～翌朝07:30はスタッフが不在になります。
+緊急時は下記の番号にご連絡ください。
+
+070-3549-3069
+※日中の電話はご遠慮ください。`
+          });
+
+          continue;
+        }
+      }
+
+      // =========================
+      // 🔹 Postback処理
+      // =========================
       if (event.type === "postback") {
 
         const data = event.postback.data;
@@ -41,7 +81,7 @@ app.post("/webhook", async (req, res) => {
           continue;
         }
 
-        // 🍹 ドリンク（元サイズ表示）
+        // 🍹 ドリンク
         if (data === "action=drink") {
           const drinkImage =
             "https://res.cloudinary.com/dtbvrmjru/image/upload/v1771899362/%E3%83%88%E3%82%99%E3%83%AA%E3%83%B3%E3%82%AF%E3%83%A1%E3%83%8B%E3%83%A5%E3%83%BC_y4emlf.png";
@@ -62,7 +102,7 @@ app.post("/webhook", async (req, res) => {
           continue;
         }
 
-        // 🎪 アクティビティ（画像そのまま表示）
+        // 🎪 アクティビティ
         if (data === "action=activity") {
 
           const makeBubble = (img, url) => ({
@@ -85,52 +125,15 @@ app.post("/webhook", async (req, res) => {
             contents: {
               type: "carousel",
               contents: [
-
-                makeBubble(
-                  "https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905293/1_navye5.png",
-                  "https://glampicks.jp/glamping/g23617/official/?activity_option=1716163127&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"
-                ),
-
-                makeBubble(
-                  "https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905294/2_x7wzdh.png",
-                  "https://glampicks.jp/glamping/g23617/official/?activity_option=1683730809&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"
-                ),
-
-                makeBubble(
-                  "https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905295/3_fvwfae.png",
-                  "https://glampicks.jp/glamping/g23617/official/?activity_option=1739016438&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"
-                ),
-
-                makeBubble(
-                  "https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905294/4_pohlnx.png",
-                  "https://glampicks.jp/glamping/g23617/official/?activity_option=1760056490"
-                ),
-
-                makeBubble(
-                  "https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905295/5_dgp9gl.png",
-                  "https://glampicks.jp/glamping/g23617/official/?activity_option=1690357206&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"
-                ),
-
-                makeBubble(
-                  "https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905294/6_adivwy.png",
-                  "https://glampicks.jp/glamping/g23617/official/?activity_option=1683730808&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"
-                ),
-
-                makeBubble(
-                  "https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905299/7_gsq0pv.png",
-                  "https://glampicks.jp/glamping/g23617/official/?activity_option=1683730804&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"
-                ),
-
-                makeBubble(
-                  "https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905293/8_bnjbzj.png",
-                  "https://glampicks.jp/glamping/g23617/official/?activity_option=1746012956&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"
-                ),
-
-                makeBubble(
-                  "https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905294/9_crtr6w.png",
-                  "https://glampicks.jp/glamping/g23617/official/?activity_option=1746012959&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"
-                )
-
+                makeBubble("https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905293/1_navye5.png","https://glampicks.jp/glamping/g23617/official/?activity_option=1716163127&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"),
+                makeBubble("https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905294/2_x7wzdh.png","https://glampicks.jp/glamping/g23617/official/?activity_option=1683730809&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"),
+                makeBubble("https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905295/3_fvwfae.png","https://glampicks.jp/glamping/g23617/official/?activity_option=1739016438&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"),
+                makeBubble("https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905294/4_pohlnx.png","https://glampicks.jp/glamping/g23617/official/?activity_option=1760056490"),
+                makeBubble("https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905295/5_dgp9gl.png","https://glampicks.jp/glamping/g23617/official/?activity_option=1690357206&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"),
+                makeBubble("https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905294/6_adivwy.png","https://glampicks.jp/glamping/g23617/official/?activity_option=1683730808&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"),
+                makeBubble("https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905299/7_gsq0pv.png","https://glampicks.jp/glamping/g23617/official/?activity_option=1683730804&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"),
+                makeBubble("https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905293/8_bnjbzj.png","https://glampicks.jp/glamping/g23617/official/?activity_option=1746012956&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu"),
+                makeBubble("https://res.cloudinary.com/dtbvrmjru/image/upload/v1771905294/9_crtr6w.png","https://glampicks.jp/glamping/g23617/official/?activity_option=1746012959&utm_source=LINE&utm_medium=referral&utm_campaign=activity_richmenu")
               ]
             }
           });
