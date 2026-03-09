@@ -1,322 +1,236 @@
 import express from "express";
+import { Client } from "@line/bot-sdk";
 
 const app = express();
 app.use(express.json());
 
-const TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-
-async function replyMessage(replyToken, messages) {
-  const res = await fetch("https://api.line.me/v2/bot/message/reply", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${TOKEN}`
-    },
-    body: JSON.stringify({
-      replyToken,
-      messages: Array.isArray(messages) ? messages : [messages]
-    })
-  });
-
-  if (!res.ok) {
-    console.error(await res.text());
-  }
-}
-
-app.get("/", (_, res) => res.send("ok"));
-
-app.post("/webhook", (req, res) => {
-  const events = req.body.events || [];
-  res.sendStatus(200);
-  Promise.all(events.map(handleEvent));
+const client = new Client({
+  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN
 });
 
-async function handleEvent(event) {
+const OWNER_ID = process.env.OWNER_ID;
 
-  if (event.type !== "postback") return;
+app.get("/", (req, res) => {
+  res.send("ok");
+});
 
-  const data = event.postback.data;
-  const replyToken = event.replyToken;
+app.post("/webhook", async (req, res) => {
 
-  // ===============================
-  // チェックイン開始
-  // ===============================
+  const events = req.body.events;
 
-  if (data === "action=checkinStart") {
+  for (const event of events) {
 
-    return replyMessage(replyToken,{
-      type:"flex",
-      altText:"チェックイン",
-      contents:{
-        type:"bubble",
-        header:{
-          type:"box",
-          layout:"vertical",
-          backgroundColor:"#E6B8AF",
-          contents:[{
-            type:"text",
-            text:"チェックインのご案内",
-            weight:"bold",
-            size:"lg",
-            color:"#5A3A36",
-            align:"center"
-          }]
-        },
-        body:{
-          type:"box",
-          layout:"vertical",
-          spacing:"md",
-          contents:[
+    if (event.type !== "postback") continue;
 
-            {
-              type:"button",
-              style:"primary",
-              color:"#4A6741",
-              action:{
-                type:"uri",
-                label:"事前チェックインはこちら",
-                uri:"https://dive-hotels.com/accounts/mypage"
-              }
-            },
+    const data = new URLSearchParams(event.postback.data);
+    const action = data.get("action");
 
-            {
-              type:"button",
-              style:"secondary",
-              action:{
-                type:"postback",
-                label:"入力したので、スタッフを呼ぶ",
-                data:"action=callStaff"
-              }
-            }
+    // チェックイン開始
+    if (action === "checkinStart") {
+      await sendRoomSelect(event.replyToken);
+    }
 
-          ]
-        }
-      }
-    });
+    // 部屋選択
+    if (action === "selectRoom") {
 
-  }
+      const room = data.get("room");
 
-  // ===============================
-  // スタッフ呼び出し
-  // ===============================
+      await sendDinnerSelect(event.replyToken, room);
+    }
 
-  if(data==="action=callStaff"){
+    // 夕食時間選択
+    if (action === "selectDinner") {
 
-    return replyMessage(replyToken,{
-      type:"flex",
-      altText:"スタッフ呼び出し",
-      contents:{
-        type:"bubble",
-        body:{
-          type:"box",
-          layout:"vertical",
-          spacing:"md",
-          contents:[
+      const room = data.get("room");
+      const time = data.get("time");
 
-            {
-              type:"text",
-              text:"スタッフが参りますので少々お待ちください。",
-              wrap:true,
-              align:"center"
-            },
+      await sendConfirm(event.replyToken, room, time);
+    }
 
-            {
-              type:"button",
-              style:"primary",
-              color:"#E6B8AF",
-              action:{
-                type:"postback",
-                label:"スタッフの案内でタップ",
-                data:"action=checkinComplete"
-              }
-            }
+    // チェックイン確定
+    if (action === "confirmCheckin") {
 
-          ]
-        }
-      }
-    });
+      const room = data.get("room");
+      const time = data.get("time");
+
+      // 運営へ通知
+      await client.pushMessage(OWNER_ID, {
+        type: "text",
+        text: `チェックイン完了
+お部屋：${room}
+夕食時間：${time}`
+      });
+
+      // ユーザーへ返信
+      await client.replyMessage(event.replyToken, {
+        type: "text",
+        text: `チェックイン完了
+本日はごゆっくりお過ごしください。
+
+（わくわくのもりをご利用される方はこちら）
+https://docs.google.com/forms/d/e/1FAIpQLSfUwLl-prlCVQmcb8rS4wGWr1RHQ6g96orTTbe1MUrPSPWpPg/viewform`
+      });
+
+    }
 
   }
 
-  // ===============================
-  // 部屋タイプ選択
-  // ===============================
+  res.sendStatus(200);
 
-  if (data === "action=checkinComplete") {
+});
 
-    return replyMessage(replyToken,{
-      type:"flex",
-      altText:"部屋タイプ",
-      contents:{
-        type:"bubble",
-        header:{
-          type:"box",
-          layout:"vertical",
-          backgroundColor:"#E6B8AF",
-          contents:[{
-            type:"text",
-            text:"お部屋タイプ",
-            size:"lg",
-            weight:"bold",
-            color:"#5A3A36",
-            align:"center"
-          }]
-        },
-        body:{
-          type:"box",
-          layout:"vertical",
-          spacing:"md",
-          contents:[
+app.listen(process.env.PORT || 3000);
 
-            {
-              type:"button",
-              style:"primary",
-              color:"#4A6741",
-              action:{
-                type:"postback",
-                label:"皇帝テント（フォレスト）",
-                data:"action=selectRoomType&type=forest"
-              }
-            },
 
-            {
-              type:"button",
-              style:"primary",
-              color:"#E6B8AF",
-              action:{
-                type:"postback",
-                label:"ベルテント",
-                data:"action=selectRoomType&type=bell"
-              }
-            },
 
-            {
-              type:"button",
-              style:"primary",
-              color:"#5C8A52",
-              action:{
-                type:"postback",
-                label:"皇帝テント（ガーデン）",
-                data:"action=selectRoomType&type=garden"
-              }
-            }
+/* -----------------------------
+   部屋選択
+------------------------------ */
 
-          ]
-        }
-      }
-    });
+async function sendRoomSelect(token) {
 
-  }
+  const rooms = [
+    "皇帝T(F)1",
+    "皇帝T(F)2",
+    "皇帝T(F)3",
+    "皇帝T(F)4"
+  ];
 
-  // ===============================
-  // 部屋番号選択
-  // ===============================
-
-  if(data.startsWith("action=selectRoomType")){
-
-    const params=new URLSearchParams(data.split("&")[1]);
-    const type=params.get("type");
-
-    const roomMap={
-      forest:["皇帝T(F)1","皇帝T(F)2"],
-      bell:["テント3","テント4","テント5","テント6","テント7","テント8","テント9","テント10"],
-      garden:["皇帝T(G)11","皇帝T(G)12"]
-    };
-
-    const rooms=roomMap[type];
-
-    const carousel=rooms.map(room=>({
-
-      type:"bubble",
-      size:"micro",
-      body:{
-        type:"box",
-        layout:"vertical",
-        paddingAll:"20px",
-        backgroundColor:"#E6B8AF",
-        action:{
-          type:"postback",
-          label:room,
-          data:`action=selectDinner&room=${room}`
-        },
-        contents:[{
-          type:"text",
-          text:room,
-          size:"lg",
-          weight:"bold",
-          align:"center"
-        }]
-      }
-
-    }));
-
-    return replyMessage(replyToken,{
-      type:"flex",
-      altText:"部屋選択",
-      contents:{
-        type:"carousel",
-        contents:carousel
-      }
-    });
-
-  }
-
-  // ===============================
-  // 夕食時間選択
-  // ===============================
-
-  if(data.startsWith("action=selectDinner")){
-
-    const params=new URLSearchParams(data.split("&")[1]);
-    const room=params.get("room");
-
-    const times=["17:00","17:30","18:00"];
-
-    const contents=times.map(t=>({
-
-      type:"box",
-      layout:"vertical",
-      margin:"sm",
-      backgroundColor:"#E6B8AF",
-      cornerRadius:"8px",
-      action:{
-        type:"postback",
-        label:t,
-        data:`action=confirm&room=${room}&time=${t}`
+  await client.replyMessage(token, {
+    type: "flex",
+    altText: "部屋選択",
+    contents: {
+      type: "bubble",
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: "お部屋を選択してください",
+            weight: "bold",
+            size: "lg"
+          }
+        ]
       },
-      contents:[{
-        type:"box",
-        layout:"horizontal",
-        paddingAll:"14px",
-        contents:[{
-          type:"text",
-          text:`🍽️ ${t}`,
-          weight:"bold",
-          size:"md",
-          align:"center"
-        }]
-      }]
-
-    }));
-
-    return replyMessage(replyToken,{
-
-      type:"flex",
-      altText:"夕食時間",
-      contents:{
-        type:"bubble",
-        body:{
-          type:"box",
-          layout:"vertical",
-          contents:contents
-        }
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: rooms.map(room => ({
+          type: "button",
+          style: "primary",
+          color: "#e8a0a8",
+          action: {
+            type: "postback",
+            label: room,
+            data: `action=selectRoom&room=${room}`
+          }
+        }))
       }
-
-    });
-
-  }
+    }
+  });
 
 }
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT,()=>console.log("MITSUSE server started"));
+
+/* -----------------------------
+   夕食時間選択
+------------------------------ */
+
+async function sendDinnerSelect(token, room) {
+
+  const times = [
+    "17:30",
+    "18:00",
+    "18:30",
+    "19:00"
+  ];
+
+  await client.replyMessage(token, {
+    type: "flex",
+    altText: "夕食時間",
+    contents: {
+      type: "bubble",
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: "夕食時間を選択してください",
+            weight: "bold",
+            size: "lg"
+          }
+        ]
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: times.map(time => ({
+          type: "button",
+          style: "primary",
+          color: "#e8a0a8",
+          action: {
+            type: "postback",
+            label: time,
+            data: `action=selectDinner&room=${room}&time=${time}`
+          }
+        }))
+      }
+    }
+  });
+
+}
+
+
+/* -----------------------------
+   内容確認
+------------------------------ */
+
+async function sendConfirm(token, room, time) {
+
+  await client.replyMessage(token, {
+    type: "flex",
+    altText: "確認",
+    contents: {
+      type: "bubble",
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: "内容のご確認",
+            weight: "bold",
+            size: "lg"
+          },
+          {
+            type: "text",
+            text: `部屋：${room}`
+          },
+          {
+            type: "text",
+            text: `夕食：${time}`
+          }
+        ]
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "button",
+            style: "primary",
+            color: "#e8a0a8",
+            action: {
+              type: "postback",
+              label: "間違いなければこちらをタップ",
+              data: `action=confirmCheckin&room=${room}&time=${time}`
+            }
+          }
+        ]
+      }
+    }
+  });
+
+}
