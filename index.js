@@ -10,9 +10,13 @@ const client = new Client({
 
 const OWNER_ID = process.env.OWNER_ID;
 
+
+
 app.get("/", (req, res) => {
   res.send("ok");
 });
+
+
 
 app.post("/webhook", async (req, res) => {
 
@@ -25,10 +29,24 @@ app.post("/webhook", async (req, res) => {
     const data = new URLSearchParams(event.postback.data);
     const action = data.get("action");
 
+
+
     // チェックイン開始
     if (action === "checkinStart") {
-      await sendRoomSelect(event.replyToken);
+      await sendRoomType(event.replyToken);
     }
+
+
+
+    // 部屋タイプ選択
+    if (action === "selectType") {
+
+      const type = data.get("type");
+
+      await sendRoomSelect(event.replyToken, type);
+    }
+
+
 
     // 部屋選択
     if (action === "selectRoom") {
@@ -38,7 +56,9 @@ app.post("/webhook", async (req, res) => {
       await sendDinnerSelect(event.replyToken, room);
     }
 
-    // 夕食時間選択
+
+
+    // 夕食選択
     if (action === "selectDinner") {
 
       const room = data.get("room");
@@ -47,13 +67,14 @@ app.post("/webhook", async (req, res) => {
       await sendConfirm(event.replyToken, room, time);
     }
 
-    // チェックイン確定
+
+
+    // 確定
     if (action === "confirmCheckin") {
 
       const room = data.get("room");
       const time = data.get("time");
 
-      // 運営へ通知
       await client.pushMessage(OWNER_ID, {
         type: "text",
         text: `チェックイン完了
@@ -61,7 +82,6 @@ app.post("/webhook", async (req, res) => {
 夕食時間：${time}`
       });
 
-      // ユーザーへ返信
       await client.replyMessage(event.replyToken, {
         type: "text",
         text: `チェックイン完了
@@ -79,22 +99,112 @@ https://docs.google.com/forms/d/e/1FAIpQLSfUwLl-prlCVQmcb8rS4wGWr1RHQ6g96orTTbe1
 
 });
 
+
+
 app.listen(process.env.PORT || 3000);
 
 
 
-/* -----------------------------
-   部屋選択
------------------------------- */
+/* =========================
+   部屋タイプ選択
+========================= */
 
-async function sendRoomSelect(token) {
+async function sendRoomType(token) {
 
-  const rooms = [
-    "皇帝T(F)1",
-    "皇帝T(F)2",
-    "皇帝T(F)3",
-    "皇帝T(F)4"
-  ];
+  await client.replyMessage(token, {
+    type: "flex",
+    altText: "部屋タイプ",
+    contents: {
+      type: "bubble",
+      body: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+          {
+            type: "text",
+            text: "お部屋タイプを選択してください",
+            weight: "bold",
+            size: "lg"
+          }
+        ]
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        contents: [
+
+          {
+            type: "button",
+            style: "primary",
+            color: "#e8a0a8",
+            action: {
+              type: "postback",
+              label: "皇帝テント（フォレスト）",
+              data: "action=selectType&type=forest"
+            }
+          },
+
+          {
+            type: "button",
+            style: "primary",
+            color: "#e8a0a8",
+            action: {
+              type: "postback",
+              label: "ベルテント",
+              data: "action=selectType&type=bell"
+            }
+          },
+
+          {
+            type: "button",
+            style: "primary",
+            color: "#e8a0a8",
+            action: {
+              type: "postback",
+              label: "皇帝テント（ガーデン）",
+              data: "action=selectType&type=garden"
+            }
+          }
+
+        ]
+      }
+    }
+  });
+
+}
+
+
+
+/* =========================
+   部屋番号選択
+========================= */
+
+async function sendRoomSelect(token, type) {
+
+  let rooms = [];
+
+  if (type === "forest") {
+    rooms = ["皇帝1", "皇帝2"];
+  }
+
+  if (type === "bell") {
+    rooms = [
+      "テント3",
+      "テント4",
+      "テント5",
+      "テント6",
+      "テント7",
+      "テント8",
+      "テント9",
+      "テント10"
+    ];
+  }
+
+  if (type === "garden") {
+    rooms = ["皇帝11", "皇帝12"];
+  }
+
+
 
   await client.replyMessage(token, {
     type: "flex",
@@ -133,18 +243,14 @@ async function sendRoomSelect(token) {
 }
 
 
-/* -----------------------------
-   夕食時間選択
------------------------------- */
+
+/* =========================
+   夕食時間
+========================= */
 
 async function sendDinnerSelect(token, room) {
 
-  const times = [
-    "17:30",
-    "18:00",
-    "18:30",
-    "19:00"
-  ];
+  const times = ["17:30", "18:00", "18:30", "19:00"];
 
   await client.replyMessage(token, {
     type: "flex",
@@ -183,9 +289,10 @@ async function sendDinnerSelect(token, room) {
 }
 
 
-/* -----------------------------
-   内容確認
------------------------------- */
+
+/* =========================
+   確認
+========================= */
 
 async function sendConfirm(token, room, time) {
 
@@ -198,20 +305,9 @@ async function sendConfirm(token, room, time) {
         type: "box",
         layout: "vertical",
         contents: [
-          {
-            type: "text",
-            text: "内容のご確認",
-            weight: "bold",
-            size: "lg"
-          },
-          {
-            type: "text",
-            text: `部屋：${room}`
-          },
-          {
-            type: "text",
-            text: `夕食：${time}`
-          }
+          { type: "text", text: "内容のご確認", weight: "bold", size: "lg" },
+          { type: "text", text: `部屋：${room}` },
+          { type: "text", text: `夕食：${time}` }
         ]
       },
       footer: {
