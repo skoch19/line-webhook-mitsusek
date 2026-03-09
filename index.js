@@ -224,7 +224,7 @@ https://dive-hotels.com/accounts/mypage
           header: {
             type: "box",
             layout: "vertical",
-            backgroundColor: "#8B3A2F",
+            backgroundColor: "#e8b9a5",
             contents: [
               {
                 type: "text",
@@ -244,7 +244,7 @@ https://dive-hotels.com/accounts/mypage
               {
                 type: "button",
                 style: "primary",
-                color: "#8B3A2F",
+                color: "#e8b9a5",
                 action: {
                   type: "uri",
                   label: "チェックインフォームの入力",
@@ -278,7 +278,7 @@ https://dive-hotels.com/accounts/mypage
           header: {
             type: "box",
             layout: "vertical",
-            backgroundColor: "#8B3A2F",
+            backgroundColor: "#e8b9a5",
             contents: [
               {
                 type: "text",
@@ -308,7 +308,7 @@ https://dive-hotels.com/accounts/mypage
               {
                 type: "button",
                 style: "primary",
-                color: "#8B3A2F",
+                color: "#e8b9a5",
                 action: {
                   type: "postback",
                   label: "ベルテント 3〜10",
@@ -462,7 +462,7 @@ https://dive-hotels.com/accounts/mypage
                 type: "box",
                 layout: "vertical",
                 margin: "sm",
-                backgroundColor: "#8B3A2F",
+                backgroundColor: "#e8b9a5",
                 cornerRadius: "8px",
                 action: {
                   type: "postback",
@@ -498,6 +498,7 @@ https://dive-hotels.com/accounts/mypage
               ...[
                 { label: "🍽️ 17:30", time: "17:30" },
                 { label: "🍽️ 18:00", time: "18:00" }
+                { label: "🍽️ 18:30", time: "18:30" }
               ].map(item => ({
                 type: "box",
                 layout: "vertical",
@@ -548,7 +549,7 @@ https://dive-hotels.com/accounts/mypage
           header: {
             type: "box",
             layout: "vertical",
-            backgroundColor: "#8B3A2F",
+            backgroundColor: "#e8b9a5",
             contents: [
               {
                 type: "text",
@@ -585,7 +586,7 @@ https://dive-hotels.com/accounts/mypage
               {
                 type: "button",
                 style: "primary",
-                color: "#8B3A2F",
+                color: "#e8b9a5",
                 margin: "md",
                 action: {
                   type: "message",
