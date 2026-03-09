@@ -78,7 +78,7 @@ async function handleEvent(event) {
               contents: [
                 {
                   type: "text",
-                  text: "本日はごゆっくりお過ごしください。\n\n最後に同意書のご記入をお願いします。",
+                  text: "本日はごゆっくりお過ごしください。\n\森のたんけんアスレチックご利用の方はタップ",
                   wrap: true,
                   size: "sm",
                   align: "center",
@@ -91,7 +91,7 @@ async function handleEvent(event) {
                   margin: "md",
                   action: {
                     type: "uri",
-                    label: "同意書を記入する（任意）",
+                    label: "アスレチック同意書",
                     uri: "https://docs.google.com/forms/d/e/1FAIpQLSfUwLl-prlCVQmcb8rS4wGWr1RHQ6g96orTTbe1MUrPSPWpPg/viewform"
                   }
                 }
