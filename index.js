@@ -78,7 +78,7 @@ async function handleEvent(event) {
               contents: [
                 {
                   type: "text",
-                  text: "本日はごゆっくりお過ごしください。\n\森のたんけんアスレチックご利用の方はタップ",
+                  text: "本日はごゆっくりお過ごしください。\n\n最後に同意書のご記入をお願いします。",
                   wrap: true,
                   size: "sm",
                   align: "center",
@@ -91,7 +91,7 @@ async function handleEvent(event) {
                   margin: "md",
                   action: {
                     type: "uri",
-                    label: "アスレチック同意書",
+                    label: "同意書を記入する（任意）",
                     uri: "https://docs.google.com/forms/d/e/1FAIpQLSfUwLl-prlCVQmcb8rS4wGWr1RHQ6g96orTTbe1MUrPSPWpPg/viewform"
                   }
                 }
@@ -342,7 +342,7 @@ https://dive-hotels.com/accounts/mypage
         { name: "皇帝T(F)1", color: "#4A6741" },
         { name: "皇帝T(F)2", color: "#4A6741" }
       ],
-      bell: Array.from({ length: 8 }, (_, i) => ({ name: `ベルテント${i + 3}`, color: "#e8b9a5" })),
+      bell: Array.from({ length: 8 }, (_, i) => ({ name: `テント${i + 3}`, color: "#e8b9a5" })),
       garden: [
         { name: "皇帝T(G)11", color: "#5C8A52" },
         { name: "皇帝T(G)12", color: "#5C8A52" }
