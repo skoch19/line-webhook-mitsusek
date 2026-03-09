@@ -48,7 +48,7 @@ async function handleEvent(event) {
   if (event.type === "message" && event.message.type === "text") {
     const text = event.message.text;
 
-    // ⑤ チェックイン完了（確認画面のボタンタップで送信されるテキスト）
+    // ⑤ チェックイン完了
     if (text.startsWith("チェックイン完了")) {
       return replyMessage(event.replyToken, [
         {
@@ -59,7 +59,7 @@ async function handleEvent(event) {
             header: {
               type: "box",
               layout: "vertical",
-              backgroundColor: "#8B3A2F",
+              backgroundColor: "#e8b9a5",
               contents: [
                 {
                   type: "text",
@@ -87,7 +87,7 @@ async function handleEvent(event) {
                 {
                   type: "button",
                   style: "primary",
-                  color: "#8B3A2F",
+                  color: "#e8b9a5",
                   margin: "md",
                   action: {
                     type: "uri",
@@ -213,7 +213,7 @@ https://dive-hotels.com/accounts/mypage
     });
   }
 
-  // ① チェックイン開始（リッチメニューから）
+  // ① チェックイン開始
   else if (data === "action=checkinStart") {
     return replyMessage(replyToken, [
       {
@@ -342,7 +342,7 @@ https://dive-hotels.com/accounts/mypage
         { name: "皇帝T(F)1", color: "#4A6741" },
         { name: "皇帝T(F)2", color: "#4A6741" }
       ],
-      bell: Array.from({ length: 8 }, (_, i) => ({ name: `ベルテント${i + 3}`, color: "#8B3A2F" })),
+      bell: Array.from({ length: 8 }, (_, i) => ({ name: `ベルテント${i + 3}`, color: "#e8b9a5" })),
       garden: [
         { name: "皇帝T(G)11", color: "#5C8A52" },
         { name: "皇帝T(G)12", color: "#5C8A52" }
@@ -371,7 +371,7 @@ https://dive-hotels.com/accounts/mypage
           contents: group.map(room => ({
             type: "button",
             style: "primary",
-            color: "#6B2D23",
+            color: "#d4967e",
             height: "sm",
             action: {
               type: "postback",
@@ -497,13 +497,13 @@ https://dive-hotels.com/accounts/mypage
               },
               ...[
                 { label: "🍽️ 17:30", time: "17:30" },
-                { label: "🍽️ 18:00", time: "18:00" }
+                { label: "🍽️ 18:00", time: "18:00" },
                 { label: "🍽️ 18:30", time: "18:30" }
               ].map(item => ({
                 type: "box",
                 layout: "vertical",
                 margin: "sm",
-                backgroundColor: "#8B3A2F",
+                backgroundColor: "#e8b9a5",
                 cornerRadius: "8px",
                 action: {
                   type: "postback",
