@@ -78,7 +78,7 @@ async function handleEvent(event) {
               contents: [
                 {
                   type: "text",
-                  text: "本日はごゆっくりお過ごしください。\n\n森のたんけんアスレチックを\nご利用の方はこちらをタップ",
+                  text: "本日はごゆっくりお過ごしください。\n\n最後に同意書のご記入をお願いします。",
                   wrap: true,
                   size: "sm",
                   align: "center",
@@ -91,7 +91,7 @@ async function handleEvent(event) {
                   margin: "md",
                   action: {
                     type: "uri",
-                    label: "アスレチックの同意書を記入する",
+                    label: "同意書を記入する（任意）",
                     uri: "https://docs.google.com/forms/d/e/1FAIpQLSfUwLl-prlCVQmcb8rS4wGWr1RHQ6g96orTTbe1MUrPSPWpPg/viewform"
                   }
                 }
@@ -497,8 +497,7 @@ https://dive-hotels.com/accounts/mypage
               },
               ...[
                 { label: "🍽️ 17:30", time: "17:30" },
-                { label: "🍽️ 18:00", time: "18:00" },
-                { label: "🍽️ 18:30", time: "18:30" }
+                { label: "🍽️ 18:00", time: "18:00" }
               ].map(item => ({
                 type: "box",
                 layout: "vertical",
